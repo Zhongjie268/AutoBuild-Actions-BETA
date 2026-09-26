@@ -21,7 +21,7 @@ Firmware_Diy_Core() {
 	Default_Flag=AUTO
 	# 固件标签 (名称后缀), 适用不同配置文件, AUTO: [自动识别]
 	
-	Default_IP="192.168.1.1"
+	Default_IP="192.168.6.1"
 	# 固件 IP 地址
 	
 	Default_Title="Powered by AutoBuild-Actions"
@@ -209,7 +209,7 @@ EOF
 			find ${WORK}/package/ | grep Makefile | grep mosdns | xargs rm -f
 			
 			rm -rf feeds/packages/lang/golang
-			git clone https://github.com/sbwml/packages_lang_golang -b 25.x feeds/packages/lang/golang
+			git clone https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/lang/golang
 				
 			AddPackage other sbwml luci-app-mosdns v5
 		;;
