@@ -197,9 +197,11 @@ EOF
 			rm -r ${FEEDS_LUCI}/luci-app-passwall
 			rm -rf ${FEEDS_PKG}/{xray-core,v2ray-geodata,sing-box,chinadns-ng,dns2socks,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-libev,shadowsocks-rust,shadowsocksr-libev,simple-obfs,tcping,trojan-plus,tuic-client,v2ray-plugin,xray-plugin,geoview,shadow-tls}
 
-			AddPackage passwall Openwrt-Passwall openwrt-passwall main
-			AddPackage passwall Openwrt-Passwall openwrt-passwall-packages main
-			sed -i 's/^local excluded_domain = {.*/local excluded_domain = {}/' package/passwall/openwrt-passwall/luci-app-passwall/root/usr/share/passwall/rule_update.lua
+			rm -rf package/passwall-packages package/passwall-luci
+			git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages package/passwall-packages
+			git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall package/passwall-luci
+
+			sed -i 's/^local excluded_domain = {.*/local excluded_domain = {}/' package/passwall-luci/luci-app-passwall/root/usr/share/passwall/rule_update.lua
 				
 			patch < ${CustomFiles}/mt7981/0001-Add-iptables-socket.patch -p1 -d ${WORK}
 
