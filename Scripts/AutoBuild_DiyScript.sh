@@ -21,7 +21,7 @@ Firmware_Diy_Core() {
 	Default_Flag=AUTO
 	# 固件标签 (名称后缀), 适用不同配置文件, AUTO: [自动识别]
 	
-	Default_IP="192.168.1.1"
+	Default_IP="192.168.6.1"
 	# 固件 IP 地址
 	
 	Default_Title="Powered by AutoBuild-Actions"
@@ -169,7 +169,7 @@ EOF
 				sed -i 's/^local excluded_domain = {.*/local excluded_domain = {}/' package/passwall/openwrt-passwall/luci-app-passwall/root/usr/share/passwall/rule_update.lua
 				
 				rm -rf feeds/packages/lang/golang
-				git clone https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/lang/golang
+				git clone https://github.com/sbwml/packages_lang_golang -b 27.x feeds/packages/lang/golang
 				
 				rm -r ${FEEDS_LUCI}/luci-app-passwall
 				rm -rf ${FEEDS_PKG}/{xray-core,v2ray-geodata,sing-box,chinadns-ng,dns2socks,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-libev,shadowsocks-rust,shadowsocksr-libev,simple-obfs,tcping,trojan-plus,tuic-client,v2ray-plugin,xray-plugin,geoview,shadow-tls}
@@ -195,16 +195,25 @@ EOF
 			AddPackage fakehttp yingziwu openwrt-fakehttp main
 				
 			rm -r ${FEEDS_LUCI}/luci-app-passwall
-			rm -rf ${FEEDS_PKG}/{xray-core,v2ray-geodata,sing-box,chinadns-ng,dns2socks,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-libev,shadowsocks-rust,simple-obfs,tcping,trojan-plus,tuic-client,v2ray-plugin,xray-plugin,geoview,shadow-tls}
+			rm -rf ${FEEDS_PKG}/{xray-core,v2ray-geodata,sing-box,chinadns-ng,dns2socks,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-libev,shadowsocks-rust,shadowsocksr-libev,simple-obfs,tcping,trojan-plus,tuic-client,v2ray-plugin,xray-plugin,geoview,shadow-tls}
 
-			AddPackage passwall Openwrt-Passwall openwrt-passwall main
-			AddPackage passwall Openwrt-Passwall openwrt-passwall-packages main
+			rm -rf package/passwall-packages package/passwall-luci
+			git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages package/passwall-packages
+			git clone --depth 1 https://github.com/Openwrt-Passwall/openwrt-passwall package/passwall-luci
+			# --- 修复 shadowsocksr-libev 源码内置型 Makefile 缺少 Build/Prepare 的问题 ---
+			SSR_MK="package/passwall-packages/shadowsocksr-libev/Makefile"
+			if [ -f "$SSR_MK" ] && ! grep -q "Build/Prepare" "$SSR_MK"; then
+				sed -i '/include \$(INCLUDE_DIR)\/package.mk/a\
+\
+define Build/Prepare\
+\tmkdir -p $(PKG_BUILD_DIR)\
+\t$(CP) ./src/. $(PKG_BUILD_DIR)/\
+endef\
+' "$SSR_MK"
+			fi
+			# --- 修复结束 ---
 
-        rm -rf package/passwall/openwrt-passwall-packages/shadowsocksr-libev
-
-        echo "=== shadowsocksr-libev dirs after cleanup ==="
-        find ${WORK}/package -name "shadowsocksr-libev" -type d 2>/dev/null
-        find ${WORK}/feeds -name "shadowsocksr-libev" -type d 2>/dev/null
+			sed -i 's/^local excluded_domain = {.*/local excluded_domain = {}/' package/passwall-luci/luci-app-passwall/root/usr/share/passwall/rule_update.lua
 				
 			patch < ${CustomFiles}/mt7981/0001-Add-iptables-socket.patch -p1 -d ${WORK}
 
